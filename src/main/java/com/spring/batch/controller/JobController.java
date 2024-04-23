@@ -50,7 +50,7 @@ public class JobController
 
             JobExecution execution = jobLauncher.run(job, jobParameter);
 
-            if(execution.getExitStatus().getExitCode().equals(ExitStatus.COMPLETED))
+            if(execution.getExitStatus().getExitCode().equals(ExitStatus.COMPLETED.getExitCode()))
             {
                 // delete the file from the TEMP_STORAGE
                 Files.deleteIfExists(Paths.get(filePath));

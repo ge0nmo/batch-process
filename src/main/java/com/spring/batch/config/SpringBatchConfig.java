@@ -39,8 +39,6 @@ public class SpringBatchConfig
 
     private final StepBuilderFactory stepBuilderFactory;*/
 
-
-
     private final CustomerRepository customerRepository;
 
     private final CustomerItemWriter customerItemWriter;
