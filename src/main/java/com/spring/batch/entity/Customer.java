@@ -29,4 +29,6 @@ public class Customer
     private String country;
 
     private String dob;
+
+    private String age;
 }
