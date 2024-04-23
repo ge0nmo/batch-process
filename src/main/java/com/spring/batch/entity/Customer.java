@@ -2,8 +2,10 @@ package com.spring.batch.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
+@Setter
 @Table(name = "CUSTOMERS_INFO")
 @Entity
 public class Customer
