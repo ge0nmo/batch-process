@@ -4,13 +4,15 @@ import com.spring.batch.entity.Customer;
 import com.spring.batch.listener.StepSkipListener;
 import com.spring.batch.repository.CustomerRepository;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.SkipListener;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.core.step.skip.SkipPolicy;
 import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
@@ -24,17 +26,20 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import java.io.File;
 
+@RequiredArgsConstructor
+//@EnableBatchProcessing no longer required since spring boot 3.0
 @Configuration
-@AllArgsConstructor
-@EnableBatchProcessing
 public class SpringBatchConfig
 {
-    private final JobBuilderFactory jobBuilderFactory;
+    /*private final JobBuilderFactory jobBuilderFactory;
 
-    private final StepBuilderFactory stepBuilderFactory;
+    private final StepBuilderFactory stepBuilderFactory;*/
+
+
 
     private final CustomerRepository customerRepository;
 
@@ -89,9 +94,10 @@ public class SpringBatchConfig
     }
 
     @Bean
-    public Step step1(FlatFileItemReader<Customer> itemReader)
+    public Step step1(FlatFileItemReader<Customer> itemReader, JobRepository jobRepository, PlatformTransactionManager transactionManager)
     {
-        return stepBuilderFactory.get("csv-step").<Customer, Customer>chunk(10)
+        return new StepBuilder("csv-step", jobRepository)
+                .<Customer, Customer>chunk(10, transactionManager)
                 .reader(itemReader)
                 .processor(processor())
                 .writer(writer())
@@ -102,11 +108,10 @@ public class SpringBatchConfig
     }
 
     @Bean
-    public Job runJob(FlatFileItemReader<Customer> itemReader)
+    public Job runJob(FlatFileItemReader<Customer> itemReader, JobRepository jobRepository, PlatformTransactionManager transactionManager)
     {
-        return jobBuilderFactory
-                .get("importCustomer")
-                .flow(step1(itemReader)) //job can have multiple steps using .next()
+        return new JobBuilder("importCustomers", jobRepository)
+                .flow(step1(itemReader, jobRepository, transactionManager)) //job can have multiple steps using .next()
                 .end()
                 .build();
     }
